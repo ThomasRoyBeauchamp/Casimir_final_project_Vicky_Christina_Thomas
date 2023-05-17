@@ -14,6 +14,8 @@ import smtplib
 import requests
 import os
 
+from Conference_Hunting import Conference, get_all_conference_pages
+
 from key_words import key_authors, key_words, key_email_addresses
 
 TO = key_email_addresses #TO = ["J.M.Brevoord@tudelft.nl", "M.Roehsner@tudelft.nl","julius.fischer@tudelft.nl"]
@@ -81,45 +83,8 @@ if date.today().weekday() == 0:  # today is Monday
 else:  # every other day
     day = date.today() - timedelta(days=2)
 
-
-# Download the page
-url = search_string.format(day)
-page = requests.get(url)
-soup = BeautifulSoup(page.content, 'html.parser')
-
-
-# Remove unnecessary stuff
-soup.find("header").decompose()
-soup.find("footer").decompose()
-for div in soup.find_all("div", {'class': 'level is-marginless'}):
-    div.decompose()
-for div in soup.find_all("div", {'class': 'level-right'}):
-    div.decompose()
-for div in soup.find_all("div", {'class': 'columns'}):
-    div.decompose()
-for div in soup.find_all("div", {'class': 'level breathe-horizontal'}):
-    div.decompose()
-for div in soup.find_all("div", {'class': 'is-hidden-tablet'}):
-    div.decompose()
-for div in soup.find_all("span", {'class': 'abstract-short'}):
-    div.decompose()
-for div in soup.find_all("a", {'class': 'is-size-7'}):
-    div.decompose()
-for div in soup.find_all("span", {'class': 'abstract-full'}):
-    div['style'] = ""
-
-
-# Add title
-soup.find("ol", {'class': 'breathe-horizontal'}).contents[0].replaceWith(
-    BeautifulSoup(
-        '''
-        <h1 class="title">Your daily arXiv update {}</h1>
-        <p>Source code is in the arxiv email server repository.</p>
-        <p>This script is currently executed by {}.</p>
-        <h1 class="title"> <center> --- Suggestion Section --- </center> </h1>
-        '''
-        .format(date.today(), get_computer_name()), features='html.parser'
-    ))
+#Get list of conferences from the website:
+all_conferences = [Conference(page) for page in get_all_conference_pages()]
 
 
 # Reorder articles according to favourite keyword lists
