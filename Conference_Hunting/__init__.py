@@ -2,6 +2,9 @@ from bs4 import BeautifulSoup
 import requests
 import bs4
 
+from key_words import key_words as KEYWORDS
+from key_words import key_authors as SPEAKERS
+
 CONFERENCE_INDEX_URL: str = "https://conferenceindex.org/conferences/quantum-physics"
 
 def get_conference_pages(raw_html):
@@ -76,10 +79,13 @@ class Conference:
         self.attrs = dict([tuple(l.text.split(":", 1)) for l in lines if "class" not in l.attrs.keys()])
 
 
-    def get_speakers(self, speaker_list:[str]) -> list[str]:
+    def speakers(self) -> list[str]:
 
         program_page = BeautifulSoup(requests.get(self.attrs["Program URL"]).content, 'html.parser').text
 
-        return [spk for spk in speaker_list if spk in program_page]
+        return [spk for spk in SPEAKERS if spk in program_page]
 
+    def keywords(self):
+
+        return [kwd for kwd in KEYWORDS if any(kwd.lower() in d.lower() for d in self.description) or any(kwd.lower() in tag.lower() for tag in self.tags)]
 
