@@ -51,13 +51,21 @@ class Conference:
 
         website = BeautifulSoup(requests.get(webpage).content, 'html.parser')
 
+        website.find("header").decompose()
+        website.find("footer").decompose()
+
         a: bs4.NavigableString
 
         _desc = website.find("div", {"id": "event-description"}) ##Finds the event description tag
         for b in _desc.find_all("br"):  ##Converts <br> tags to \n
-            b.replaceWith(" ")
+            b.replaceWith("\n")
 
-        self.description = _desc.text.lower() #Converts contents to lower case
+        self.title = website.find("div", {"class": "col-lg-9 col-sm-12"}).find("h1").text
+
+        self.description = _desc.text.lower().split('\n') #Converts contents to lower case
+        if '' in self.description:
+            self.description.remove('')
+        self.description[0] = self.description[0].lstrip()
 
         self.tags = [a.text for a in website.find("li", {"class": "mt-3"}).find_all('a')] ##tags contained in a li tag with class mt-3
 
@@ -68,9 +76,10 @@ class Conference:
         self.attrs = dict([tuple(l.text.split(":", 1)) for l in lines if "class" not in l.attrs.keys()])
 
 
-        pass
+    def get_speakers(self, speaker_list:[str]) -> list[str]:
 
+        program_page = BeautifulSoup(requests.get(self.attrs["Program URL"]).content, 'html.parser').text
 
-
+        return [spk for spk in speaker_list if spk in program_page]
 
 
