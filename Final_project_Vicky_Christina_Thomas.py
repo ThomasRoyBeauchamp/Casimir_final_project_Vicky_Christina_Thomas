@@ -1,9 +1,9 @@
 """
-arxivParser.py
-This script gets the latest papers in quant-ph and sends an email with the abstract to the
-recepients.
-Adapted from Matteo Pompili by
-Marie-Christine Roehsner, Julia Brevoord, Julius Fischer (Casimir Research School Programming Course 2022)
+Final_project_Vicky_Christina_Thomas.py
+This script gets the latest conferences and summer schools in quantum information and sends an email with the important deadlines and info to the recepients.
+Adapted from 
+Marie-Christine Roehsner, Julia Brevoord, Julius Fischer (Casimir Research School Programming Course 2022) by
+Christina Ioannou, Thomas Beauchamp and Victoria Dominguez Tubio (Casimir Reseach School Programming Course 2023)
 """
 
 from datetime import timedelta
@@ -14,11 +14,13 @@ import smtplib
 import requests
 import os
 
-from favourites import favourite_authors, favourite_words, favourite_email_addresses
+from key_words import key_authors, key_words, key_email_addresses
 
-TO = favourite_email_addresses #TO = ["J.M.Brevoord@tudelft.nl", "M.Roehsner@tudelft.nl","julius.fischer@tudelft.nl"]
+TO = key_email_addresses #TO = ["J.M.Brevoord@tudelft.nl", "M.Roehsner@tudelft.nl","julius.fischer@tudelft.nl"]
 
-search_string = "https://arxiv.org/search/advanced?advanced=&terms-0-operator=AND&terms-0-term=&terms-0-field=title&classification-physics=y&classification-physics_archives=quant-ph&classification-include_cross_list=include&date-year=&date-filter_by=date_range&date-from_date={}&date-to_date=&date-date_type=submitted_date_first&abstracts=show&size=200&order=-announced_date_first"
+search_string = "https://conferenceindex.org/conferences/quantum-physics"
+
+search_string_1 = "https://quantum.info/conf/"
 
 
 def get_computer_name():
