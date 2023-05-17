@@ -11,3 +11,13 @@ Todo:
 -If we have a match or more we add it as as a comment in the email
 -Write and and send the email containing: dates, place, website and potential speakes that are on our key_author list
 
+Structure of the email:
+
+Dear Qutech,
+
+this is a list of potentially interesting conferences coming up in the field
+of quantum information:
+-<print title><print url>(notable speakers <print list of speakers that match with key_authors>
+
+Best regards,
+
