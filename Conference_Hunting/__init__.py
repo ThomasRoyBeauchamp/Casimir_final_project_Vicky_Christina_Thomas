@@ -185,21 +185,23 @@ class ConferenceList(list):
         c: Conference
         return "\n".join([f"{c.name} - {c.website}" for c in self])
 
-    def as_table(self, keywords: bool = False, speakers: bool = False):
+    def as_table(self, keywords: bool = False, speakers: bool = False, show_url: bool = True):
         c: Conference
 
         table: Table = Table(title=f"Relevant Conferences ({len(self)})", show_lines=True)
 
         table.add_column("Date", justify="centre")
-        table.add_column("Name", justify="centre")
+        table.add_column("Name", justify="centre", max_width=20, no_wrap=False)
         table.add_column("Location", justify="centre")
         if keywords:
             table.add_column("Keywords", justify="centre", no_wrap=False)
         if speakers:
             table.add_column("Speakers", justify="centre", no_wrap=False)
+        if show_url:
+            table.add_column("Website", justify="centre", no_wrap=False)
 
         for c in self:
-            table.add_row(*[c.date.strftime('%d/%m/%Y'), c.name, c.location] + ([', '.join(c.keywords)] if keywords else []) + ([" ".join(c.speakers) if "Program URL" in c.atributes.keys() else 'N/A'] if speakers else []))
+            table.add_row(*[c.date.strftime('%d/%m/%Y'), c.name, c.location] + ([', '.join(c.keywords)] if keywords else []) + ([" ".join(c.speakers) if "Program URL" in c.atributes.keys() else 'N/A'] if speakers else []) + ([c.website] if show_url else []))
 
         return table
 
