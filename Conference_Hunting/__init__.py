@@ -46,80 +46,10 @@ SHORT_LONG_MONTHS = {
     "Aug": "August",
     "Sep": "September",
     "Oct": "October",
-    "Nov": "Novemeber",
+    "Nov": "November",
     "Dec": "December"
 
 }
-
-def get_conferences_from_webpage(website: BeautifulSoup, at_least_in_future: timedelta = timedelta(days=30), at_most_in_future: timedelta = timedelta(days=180)):
-    """
-
-    :param website: Website to look for conferences on
-    :param at_least_in_future: (opt: 30 days) Minimum time until the start of the conference
-    :param at_most_in_future: (opt: 180 days) Maximum time until the start of the conference
-    :return: List of Conference class objects in the date range.
-    """
-
-    # website = BeautifulSoup(raw_html, "html.parser")
-
-    website.find("header").decompose()
-    website.find("footer").decompose()
-
-    eventList = website.find("div", {"id": "eventList"})
-
-    conference_entries = [x for y in eventList.find_all("ul", {"class":"list-unstyled"}) for x in y.find_all("li")]
-
-    year_mapping = dict([tuple(x.strong.text.split(',')) for x in eventList.find_all("div", {"class": "card-header"})])
-
-    for k in year_mapping.keys():
-        year_mapping[k] = int(year_mapping[k])
-
-    all_conferences = [Conference(d, year_mapping) for d in conference_entries]
-
-    go_later = date.today() + at_least_in_future > min(c.date for c in all_conferences)
-
-    return go_later, ConferenceList([c for c in all_conferences if date.today() + at_least_in_future <= c.date <= date.today() + at_most_in_future])
-
-
-
-def get_all_conferences():
-
-    conferences = ConferenceList()
-    go_to_next_page = True
-    page = 1
-    while go_to_next_page:
-
-        got_page, website = do_html_request(CONFERENCE_INDEX_URL + f'?page={page}')
-
-        if got_page:
-            go_to_next_page, new_conferences = get_conferences_from_webpage(website)
-
-            conferences += new_conferences
-
-        else:
-            break
-
-        page += 1
-
-    return conferences
-
-def do_html_request(website: str) -> (bool, BeautifulSoup | None):
-    """
-    Handles the HTTP request.
-    :param website: Website to retrieve
-    :return: (Successful, Website as BeautifulSoup or None)
-    """
-    try:
-        html_request = requests.get(website)
-
-        if html_request.status_code == 200:
-            return True, BeautifulSoup(html_request.content, "html.parser")
-        else:
-            return False, None
-
-    except:
-
-        return False, None
 
 class Conference:
 
@@ -273,4 +203,86 @@ class ConferenceList(list):
 
     def __str__(self):
         c: Conference
-        return "\n".join([f"{c.name} - {c.date} - {c.location}" for c in self])
+        return "\n".join([f"{c.date.strftime()} {c.name} - {c.location}" for c in self])
+
+
+
+def get_conferences_from_webpage(website: BeautifulSoup, at_least_in_future: timedelta = timedelta(days=30), at_most_in_future: timedelta = timedelta(days=180)):
+    """
+
+    :param website: Website to look for conferences on
+    :param at_least_in_future: (opt: 30 days) Minimum time until the start of the conference
+    :param at_most_in_future: (opt: 180 days) Maximum time until the start of the conference
+    :return: List of Conference class objects in the date range.
+    """
+
+    # website = BeautifulSoup(raw_html, "html.parser")
+
+    website.find("header").decompose()
+    website.find("footer").decompose()
+
+    eventList = website.find("div", {"id": "eventList"})
+
+    conference_entries = [x for y in eventList.find_all("ul", {"class":"list-unstyled"}) for x in y.find_all("li")]
+
+    year_mapping = dict([tuple(x.strong.text.split(',')) for x in eventList.find_all("div", {"class": "card-header"})])
+
+    for k in year_mapping.keys():
+        year_mapping[k] = int(year_mapping[k])
+
+    all_conferences = [Conference(d, year_mapping) for d in conference_entries]
+
+    go_later = date.today() + at_least_in_future > min(c.date for c in all_conferences) #Checks if it found conferences later than the earliest permitted date
+
+    return go_later, ConferenceList([c for c in all_conferences if date.today() + at_least_in_future <= c.date <= date.today() + at_most_in_future])
+
+
+
+def get_all_conferences(at_least_in_future: timedelta = timedelta(days=30), at_most_in_future: timedelta = timedelta(days=180)):
+    """
+
+    :param at_least_in_future: (opt: default 30 days) Minimum time until the start of the conference
+    :param at_most_in_future: (opt: default 180 days) Maximum time until the start of the conference
+    :return: ConferenceList of all found conferences in date range.
+    """
+
+    conferences = ConferenceList()
+    go_to_next_page = True
+    page = 1
+    while go_to_next_page:
+
+        got_page, website = do_html_request(CONFERENCE_INDEX_URL + f'?page={page}')
+
+        if got_page:
+            go_later, new_conferences = get_conferences_from_webpage(website, at_least_in_future=at_least_in_future,at_most_in_future=at_most_in_future) #Get conferences on that page, passing through date parameters
+
+            conferences += new_conferences
+
+        else:
+            break
+
+        go_to_next_page = go_later or new_conferences #Continues if need to go further into the furture or it found new conferences on the current page
+
+        page += 1
+        # print(page)
+
+    return conferences
+
+def do_html_request(website: str) -> (bool, BeautifulSoup | None):
+    """
+    Handles the HTTP request.
+    :param website: Website to retrieve
+    :return: (Successful, Website as BeautifulSoup or None)
+    """
+    try:
+        html_request = requests.get(website)
+
+        if html_request.status_code == 200:
+            return True, BeautifulSoup(html_request.content, "html.parser")
+        else:
+            return False, None
+
+    except:
+
+        return False, None
+
