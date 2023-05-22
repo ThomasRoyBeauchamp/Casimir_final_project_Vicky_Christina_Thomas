@@ -2,10 +2,13 @@ from Conference_Hunting import get_all_conferences, Conference, ConferenceList
 
 from rich import print as rprint
 from tqdm import tqdm
-
+from rich.console import Console
+from rich.text import Text
 import pickle
 
-all_confs: ConferenceList = get_all_conferences()
+from datetime import timedelta
+
+all_confs: ConferenceList = get_all_conferences(at_most_in_future=timedelta(days=40))
 
 
 
@@ -38,10 +41,17 @@ prog.close()
 all_confs.match_speakers(number_of_speakers=0) #Filters all_confs down to only those conferences with at least (number_of_speakers) of given speakers on the Program Page
 print()
 print(f"Number of found Conferences: ({len(all_confs)})")
-rprint(all_confs.as_table(keywords=True, speakers=True))
-print("----")
+# rprint(all_confs.as_table(keywords=True, speakers=True, show_url=True), file=open("table.txt",'w'))
+# # print("----")
+#
+# with open("table.txt", 'r') as F:
+#     print(F.read())
 
+console = Console(width=200)
+with console.capture() as capture:
+    console.print(all_confs.as_table(show_url=True, keywords=False, speakers=False))
 
+print(Text.from_ansi(capture.get()))
 
 
 
