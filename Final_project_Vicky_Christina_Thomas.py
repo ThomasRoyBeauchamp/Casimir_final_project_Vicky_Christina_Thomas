@@ -93,23 +93,27 @@ Let us know if you have any questions about our code.
 Best regards,
 
 Vicky, Thomas and Christina'''
+
 print(soup, 'html')
 
-# Send email
-# SUBJECT = "Your favourite dodgy conferences".format(date.today())
-# FROM = "c.i.ioannou@tudelft.nl"
-#
-# server = smtplib.SMTP('smtp.tudelft.nl')
-#
-# for to in TO:
-#     msg = MIMEText(str(soup), 'plain')
-#     msg['Subject'] = SUBJECT
-#     msg['From'] = FROM
-#     msg['To'] = to
-#
-#     try:
-#         server.sendmail(FROM, to, msg.as_string())
-#     except:
-#         print("Sending email to {} failed.".format(to))
-#
-# server.quit()
+
+#Send email
+SUBJECT = "Your favourite dodgy conferences".format(date.today())
+FROM = "c.i.ioannou@tudelft.nl"
+
+server = smtplib.SMTP('smtp.tudelft.nl')
+
+for to in TO:
+    msg = MIMEText(str(soup), 'plain')
+    msg['Subject'] = SUBJECT
+    msg['From'] = FROM
+    msg['To'] = to
+
+    try:
+        server.sendmail(FROM, to, msg.as_string())
+    except:
+        print("Sending email to {} failed.".format(to))
+
+server.quit()
+
+
