@@ -14,6 +14,8 @@ import smtplib
 import requests
 import os
 
+from tqdm import tqdm
+
 from Conference_Hunting import Conference, get_all_conferences
 
 from key_words import key_authors, key_words, key_email_addresses
@@ -51,6 +53,26 @@ def get_computer_name():
 all_dodgy_conferences = get_all_conferences()
 
 
+prog = tqdm(total=len(all_dodgy_conferences), desc="Finding Details")
+
+c: Conference
+for c in all_dodgy_conferences: #Gets details of conferences
+    c.retrieve_details()
+    prog.update()
+
+prog.close()
+all_dodgy_conferences.match_keywords(number_of_keywords=12) #Filters all_confs down to only those conferences with at least (number_of_keywords) keywords
+
+
+
+
+
+prog = tqdm(total=len(all_dodgy_conferences), desc="Finding Speakers")
+for c in all_dodgy_conferences:
+    c.retrieve_speakers() #Gets speakers of remaining conferences
+    prog.update()
+
+
 
 soup=f'''Dear Julius,
 
@@ -71,23 +93,23 @@ Let us know if you have any questions about our code.
 Best regards,
 
 Vicky, Thomas and Christina'''
-#print(soup, 'html')
+print(soup, 'html')
 
 # Send email
-SUBJECT = "Your favourite dodgy conferences".format(date.today())
-FROM = "c.i.ioannou@tudelft.nl"
-
-server = smtplib.SMTP('smtp.tudelft.nl')
-
-for to in TO:
-    msg = MIMEText(str(soup), 'plain')
-    msg['Subject'] = SUBJECT
-    msg['From'] = FROM
-    msg['To'] = to
-
-    try:
-        server.sendmail(FROM, to, msg.as_string())
-    except:
-        print("Sending email to {} failed.".format(to))
-
-server.quit()
+# SUBJECT = "Your favourite dodgy conferences".format(date.today())
+# FROM = "c.i.ioannou@tudelft.nl"
+#
+# server = smtplib.SMTP('smtp.tudelft.nl')
+#
+# for to in TO:
+#     msg = MIMEText(str(soup), 'plain')
+#     msg['Subject'] = SUBJECT
+#     msg['From'] = FROM
+#     msg['To'] = to
+#
+#     try:
+#         server.sendmail(FROM, to, msg.as_string())
+#     except:
+#         print("Sending email to {} failed.".format(to))
+#
+# server.quit()
