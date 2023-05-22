@@ -7,6 +7,8 @@ from key_words import key_authors as SPEAKERS
 
 from datetime import date, timedelta
 
+from rich.table import Table
+
 CONFERENCE_INDEX_URL: str = "https://conferenceindex.org/conferences/quantum-physics"
 
 MONTH_DICT = {
@@ -148,6 +150,11 @@ class Conference:
 
 
 class ConferenceList(list):
+    """
+    Modified list class to force sorting by date order of conferences.
+
+    Modified __str__ to return all entries in line-separated list in the format DATE NAME - LOCATION
+    """
 
     def __init__(self, __iterable=None):
         if __iterable is None:
@@ -177,6 +184,24 @@ class ConferenceList(list):
     def __str__(self):
         c: Conference
         return "\n".join([f"{c.date.strftime('%d/%m/%Y')} {c.name} - {c.location}" for c in self])
+
+    def as_table(self, keywords: bool = False, speakers: bool = False):
+        c: Conference
+
+        table: Table = Table(title="Relevant Conferences")
+
+        table.add_column("Date", justify="centre")
+        table.add_column("Name", justify="centre")
+        table.add_column("Location", justify="centre")
+        if keywords:
+            table.add_column("Keywords", justify="centre", no_wrap=False)
+        if speakers:
+            table.add_column("Speakers", justify="centre", no_wrap=False)
+
+        for c in self:
+            table.add_row(*[c.date.strftime('%d/%m/%Y'), c.name, c.location] + ([' '.join(c.keywords)] if keywords else [])+ ([" ".join(c.speakers)] if speakers else []))
+
+        return table
 
 
 
