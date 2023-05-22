@@ -188,7 +188,7 @@ class ConferenceList(list):
     def as_table(self, keywords: bool = False, speakers: bool = False):
         c: Conference
 
-        table: Table = Table(title="Relevant Conferences")
+        table: Table = Table(title=f"Relevant Conferences ({len(self)})", show_lines=True)
 
         table.add_column("Date", justify="centre")
         table.add_column("Name", justify="centre")
@@ -199,7 +199,7 @@ class ConferenceList(list):
             table.add_column("Speakers", justify="centre", no_wrap=False)
 
         for c in self:
-            table.add_row(*[c.date.strftime('%d/%m/%Y'), c.name, c.location] + ([' '.join(c.keywords)] if keywords else [])+ ([" ".join(c.speakers)] if speakers else []))
+            table.add_row(*[c.date.strftime('%d/%m/%Y'), c.name, c.location] + ([' '.join(c.keywords)] if keywords else []) + ([" ".join(c.speakers) if "Program URL" in c.atributes.keys() else 'N/A'] if speakers else []))
 
         return table
 
