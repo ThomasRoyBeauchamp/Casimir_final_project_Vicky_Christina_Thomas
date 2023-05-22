@@ -13,11 +13,21 @@ Todo:
 
 Structure of the email:
 
-Dear Qutech,
+Dear Julius,
 
-this is a list of potentially interesting conferences coming up in the field
-of quantum information:
--<print title><print url>(notable speakers <print list of speakers that match with key_authors>
+this is a list of potentially predatory conferences coming up in the field
+of quantum information wothin the next two to six months:
+-print title, print url
 
+We know now that we should have done a bit more reasearch before choosing
+the particular website but we hope future generations of PhDs might be 
+interested in adapting to a different website. The code strucutre should not 
+be too hard to adapt.
+
+Let us know if you have any questions about our code.
+
+
+ 
 Best regards,
 
+Vicky, Thomas and Christina
