@@ -199,7 +199,7 @@ class ConferenceList(list):
             table.add_column("Speakers", justify="centre", no_wrap=False)
 
         for c in self:
-            table.add_row(*[c.date.strftime('%d/%m/%Y'), c.name, c.location] + ([' '.join(c.keywords)] if keywords else []) + ([" ".join(c.speakers) if "Program URL" in c.atributes.keys() else 'N/A'] if speakers else []))
+            table.add_row(*[c.date.strftime('%d/%m/%Y'), c.name, c.location] + ([', '.join(c.keywords)] if keywords else []) + ([" ".join(c.speakers) if "Program URL" in c.atributes.keys() else 'N/A'] if speakers else []))
 
         return table
 
