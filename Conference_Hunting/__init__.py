@@ -183,7 +183,7 @@ class ConferenceList(list):
 
     def __str__(self):
         c: Conference
-        return "\n".join([f"{c.date.strftime('%d/%m/%Y')} {c.name} - {c.location}" for c in self])
+        return "\n".join([f"{c.name} - {c.website}" for c in self])
 
     def as_table(self, keywords: bool = False, speakers: bool = False):
         c: Conference
