@@ -21,12 +21,46 @@ MONTH_DICT = {
     "SEPTEMBER": 9,
     "OCTOBER": 10,
     "NOVEMBER": 11,
-    "DECEMBER": 12
+    "DECEMBER": 12,
+    "JAN": 1,
+    "FEB": 2,
+    "MAR": 3,
+    "APR": 4,
+    "JUN": 6,
+    "JUL": 7,
+    "AUG": 8,
+    "SEP": 9,
+    "OCT": 10,
+    "NOV": 11,
+    "DEC": 12,
 }
 
-def get_conferences_from_webpage(raw_html):
+SHORT_LONG_MONTHS = {
+    "Jan": "January",
+    "Feb": "February",
+    "Mar": "March",
+    "Apr": "April",
+    "May": "May",
+    "Jun": "June",
+    "Jul": "July",
+    "Aug": "August",
+    "Sep": "September",
+    "Oct": "October",
+    "Nov": "Novemeber",
+    "Dec": "December"
 
-    website = BeautifulSoup(raw_html, "html.parser")
+}
+
+def get_conferences_from_webpage(website: BeautifulSoup, at_least_in_future: timedelta = timedelta(days=30), at_most_in_future: timedelta = timedelta(days=180)):
+    """
+
+    :param website: Website to look for conferences on
+    :param at_least_in_future: (opt: 30 days) Minimum time until the start of the conference
+    :param at_most_in_future: (opt: 180 days) Maximum time until the start of the conference
+    :return: List of Conference class objects in the date range.
+    """
+
+    # website = BeautifulSoup(raw_html, "html.parser")
 
     website.find("header").decompose()
     website.find("footer").decompose()
@@ -40,35 +74,34 @@ def get_conferences_from_webpage(raw_html):
     for k in year_mapping.keys():
         year_mapping[k] = int(year_mapping[k])
 
+    all_conferences = [Conference(d, year_mapping) for d in conference_entries]
 
-    return [Conference(d, year_mapping) for d in conference_entries]
+    go_later = date.today() + at_least_in_future > min(c.date for c in all_conferences)
+
+    return go_later, ConferenceList([c for c in all_conferences if date.today() + at_least_in_future <= c.date <= date.today() + at_most_in_future])
 
 
-def get_all_conference_pages():
 
-    pages = []
+def get_all_conferences():
+
+    conferences = ConferenceList()
     go_to_next_page = True
     page = 1
     while go_to_next_page:
-        try:
-            http_request = requests.get(CONFERENCE_INDEX_URL + f'?page={page}')
-        except:
-            break
 
-        if http_request.status_code == 200:
+        got_page, website = do_html_request(CONFERENCE_INDEX_URL + f'?page={page}')
 
-            new_conference_pages = get_conferences_from_webpage(http_request.content)
+        if got_page:
+            go_to_next_page, new_conferences = get_conferences_from_webpage(website)
 
-            if new_conference_pages:
-                pages += new_conference_pages ##adds the new conferences to the list of all conferences
-            else:
-                go_to_next_page = False
+            conferences += new_conferences
+
         else:
             break
 
         page += 1
 
-    return pages
+    return conferences
 
 def do_html_request(website: str) -> (bool, BeautifulSoup | None):
     """
@@ -80,7 +113,7 @@ def do_html_request(website: str) -> (bool, BeautifulSoup | None):
         html_request = requests.get(website)
 
         if html_request.status_code == 200:
-            return True, BeautifulSoup(html_request.content)
+            return True, BeautifulSoup(html_request.content, "html.parser")
         else:
             return False, None
 
@@ -101,11 +134,21 @@ class Conference:
         self.location = _text[2].lstrip().replace("- ", "")
 
         _date = _text[0].lstrip().split(' ')
-        self.date = date(year=year_mapping[_date[0]], month=MONTH_DICT[_date[0].upper()], day=int(_date[1]))
+        self.date = date(year=year_mapping[SHORT_LONG_MONTHS[_date[0]]], #Looks up the year after converting from e.g. Jan to January
+                         month=MONTH_DICT[_date[0].upper()], #Looks up numberical month
+                         day=int(_date[1]))
 
         self.website = div.a.attrs["href"]
 
+        self._keywords: str = ''
+        self._description: str = ''
+        self._tags: str = ''
+        self._attrs: dict = dict()
+        self._speakers: list = list()
+
         pass
+
+
 
     # def __init__(self, webpage):
     #
@@ -113,37 +156,7 @@ class Conference:
     #
     #     website = BeautifulSoup(requests.get(webpage).content, 'html.parser')
     #
-    #     website.find("header").decompose()
-    #     website.find("footer").decompose()
     #
-    #     a: bs4.NavigableString
-    #
-    #     _desc = website.find("div", {"id": "event-description"}) ##Finds the event description tag
-    #     if _desc is not None:
-    #         for b in _desc.find_all("br"):  ##Converts <br> tags to \n
-    #             b.replaceWith(" | ")
-    #
-    #         self.description = _desc.text.lower()
-    #             # .split('\n')  # Converts contents to lower case
-    #         # if '' in self.description:
-    #         #     self.description.remove('')
-    #         # self.description[0] = self.description[0].lstrip()
-    #
-    #     else:
-    #         self.description = []
-    #
-    #
-    #     self.title = website.find("div", {"class": "col-lg-9 col-sm-12"}).find("h1").text
-    #
-    #
-    #
-    #     self.tags = ' | '.join([a.text for a in website.find("li", {"class": "mt-3"}).find_all('a')]) ##tags contained in a li tag with class mt-3
-    #
-    #     details_container = website.find("ul", {"class": "mb-2 list-unstyled"})
-    #
-    #     lines = details_container.find_all("li")
-    #
-    #     self.attrs = dict([tuple(l.text.split(":", 1)) for l in lines if "class" not in l.attrs.keys()])
     #     ## Contains everything in the Shortname, type, URLs etc.
     #
     #     if "Date" in self.attrs.keys():
@@ -182,9 +195,82 @@ class Conference:
 
     @property
     def keywords(self):
-
         return self._keywords
 
-    def __eq__(self, other):
-        return self.title == other.title
+    @property
+    def atributes(self):
+        return self._attrs
 
+    def retrieve_details(self):
+        got_page, website = do_html_request(self.website)
+        if got_page:
+            website.find("header").decompose()
+            website.find("footer").decompose()
+
+            a: bs4.NavigableString
+
+            _desc = website.find("div", {"id": "event-description"}) ##Finds the event description tag
+
+            if _desc is not None:
+                for b in _desc.find_all("br"):  ##Converts <br> tags to \n
+                    b.replaceWith(" | ")
+
+                self._description = _desc.text.lower()
+            else:
+                self._description = ''
+
+            self._tags = ' | '.join([a.text for a in website.find("li", {"class": "mt-3"}).find_all('a')]) ##tags contained in a <li> tag with class mt-3
+
+            details_container = website.find("ul", {"class": "mb-2 list-unstyled"})
+
+            lines = details_container.find_all("li")
+
+            self._attrs = dict([tuple(l.text.split(":", 1)) for l in lines if "class" not in l.attrs.keys()])
+
+            self._keywords = [kwd for kwd in KEYWORDS if kwd in self._tags or kwd in self._description]
+
+    def retrieve_speakers(self, retrieve_details: bool = False):
+        if "Program URL" in self._attrs.keys():
+            got_page, program_page = do_html_request(self._attrs["Program URL"])
+            if got_page:
+                self._speakers = [spk for spk in SPEAKERS if spk in program_page]
+
+        else:
+            if retrieve_details:
+                self.retrieve_details()
+                self.retrieve_speakers()
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+
+class ConferenceList(list):
+
+    def __init__(self, __iterable=None):
+        if __iterable is None:
+            __iterable = list()
+        super().__init__(__iterable)
+        self.sort()  ##Sorts the list by date order
+
+    def append(self, __object: Conference) -> None:
+        super().append(__object)
+        self.sort()
+
+    def sort(self, *, key: None = lambda x: x.date, reverse: bool = False) -> None: ##Sorts the list by date order by default
+        super().sort(key=key, reverse=reverse)
+
+    def match_keywords(self, number_of_keywords: int = 5):
+        c: Conference
+        _non_matching = [c for c in self if len(c.keywords) < number_of_keywords]
+        for c in _non_matching:
+            self.remove(c)
+
+    def match_speakers(self, number_of_speakers: int = 0):
+        c: Conference
+        _non_matching = [c for c in self if len(c.speakers) < number_of_speakers]
+        for c in _non_matching:
+            self.remove(c)
+
+    def __str__(self):
+        c: Conference
+        return "\n".join([f"{c.name} - {c.date} - {c.location}" for c in self])
