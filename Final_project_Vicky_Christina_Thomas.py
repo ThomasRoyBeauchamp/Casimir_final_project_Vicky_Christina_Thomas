@@ -93,7 +93,9 @@ Let us know if you have any questions about our code.
 Best regards,
 
 Vicky, Thomas and Christina'''
+
 print(soup, 'html')
+
 
 # Send email
 # SUBJECT = "Your favourite dodgy conferences".format(date.today())
@@ -113,3 +115,5 @@ print(soup, 'html')
 #         print("Sending email to {} failed.".format(to))
 #
 # server.quit()
+
+
