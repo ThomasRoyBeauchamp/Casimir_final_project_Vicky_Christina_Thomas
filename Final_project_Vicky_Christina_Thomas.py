@@ -14,7 +14,7 @@ import smtplib
 import requests
 import os
 
-from Conference_Hunting import Conference, get_all_conference_pages
+from Conference_Hunting import Conference, get_all_conferences
 
 from key_words import key_authors, key_words, key_email_addresses
 
@@ -84,7 +84,7 @@ else:  # every other day
     day = date.today() - timedelta(days=2)
 
 #Get list of conferences from the website:
-all_conferences = [Conference(page) for page in get_all_conference_pages()]
+all_conferences = [Conference(page) for page in get_all_conferences()]
 
 
 # Reorder articles according to favourite keyword lists
