@@ -64,9 +64,6 @@ prog.close()
 all_dodgy_conferences.match_keywords(number_of_keywords=12) #Filters all_confs down to only those conferences with at least (number_of_keywords) keywords
 
 
-
-
-
 prog = tqdm(total=len(all_dodgy_conferences), desc="Finding Speakers")
 for c in all_dodgy_conferences:
     c.retrieve_speakers() #Gets speakers of remaining conferences
@@ -94,7 +91,7 @@ Best regards,
 
 Vicky, Thomas and Christina'''
 
-print(soup, 'html')
+# print(soup)
 
 
 #Send email
@@ -115,5 +112,4 @@ for to in TO:
         print("Sending email to {} failed.".format(to))
 
 server.quit()
-
 
