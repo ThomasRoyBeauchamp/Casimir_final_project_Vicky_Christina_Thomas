@@ -35,7 +35,7 @@ MONTH_DICT = {
     "OCT": 10,
     "NOV": 11,
     "DEC": 12,
-}
+} # Conversion dictionary from short/long month name format to numerical equivalent.
 
 SHORT_LONG_MONTHS = {
     "Jan": "January",
@@ -51,7 +51,7 @@ SHORT_LONG_MONTHS = {
     "Nov": "November",
     "Dec": "December"
 
-}
+}  # Conversion dictionary from short to long month name format
 
 class Conference:
     """
@@ -64,7 +64,7 @@ class Conference:
 
     __eq__ is also redefined to have equality iff two conferences share the same name.
 
-    The class is initialised using the <li> tag from the list in CONFERENCE_INDEX_URL
+    The class is initialised using the <li> tag from the list in CONFERENCE_INDEX_URL, which has the format <li> Mon dd <a href=url title= Name of fake conference></a> - location </li>
     """
 
     def __init__(self, div: bs4.Tag, year_mapping: dict):
@@ -124,7 +124,7 @@ class Conference:
             else:
                 self._description = ''
 
-            self._tags = ' | '.join([a.text for a in website.find("li", {"class": "mt-3"}).find_all('a')]) ##tags contained in a <li> tag with class mt-3
+            self._tags = ' | '.join([a.text for a in website.find("li", {"class": "mt-3"}).find_all('a')])  # tags contained in a <li> tag with class mt-3
 
             details_container = website.find("ul", {"class": "mb-2 list-unstyled"})
 
@@ -135,6 +135,11 @@ class Conference:
             self._keywords = [kwd for kwd in KEYWORDS if kwd in self._tags or kwd in self._description]
 
     def retrieve_speakers(self, retrieve_details: bool = False):
+        """
+        Searches the "Program URL" page for names of interesting speakers
+        :param retrieve_details: If no Program URL, then should the details be retrieved.
+        :return: None
+        """
         if "Program URL" in self._attrs.keys():
             got_page, program_page = do_html_request(self._attrs["Program URL"])
             if got_page:
@@ -153,7 +158,7 @@ class ConferenceList(list):
     """
     Modified list class to force sorting by date order of conferences.
 
-    Modified __str__ to return all entries in line-separated list in the format DATE NAME - LOCATION
+    Modified __str__ to return all entries in line-separated list in the format NAME - URL
     """
 
     def __init__(self, __iterable=None):
@@ -223,16 +228,39 @@ def get_conferences_from_webpage(website: BeautifulSoup, at_least_in_future: tim
 
     eventList = website.find("div", {"id": "eventList"})
 
-    conference_entries = [x for y in eventList.find_all("ul", {"class":"list-unstyled"}) for x in y.find_all("li")]
+    conference_entries = [x for y in eventList.find_all("ul", {"class":"list-unstyled"}) for x in y.find_all("li")]  # Gets all the entries on the webpage, which is structured as
+    """
+    ...
+    <div id=eventList>
+    ...
+        <ul class = list-unstyled>
+            <div class = "card header>
+                ...
+                <strong>Month, YYYY</strong>
+            </div>
+            ...
+            <li> Mon dd <a href=url title= Name of fake conference></a> - location </li>
+        </ul>
+        <ul class = list-unstyled>
+            <div class = "card header>
+                ...
+                <strong>Month, YYYY</strong>
+            </div>
+            ...
+            <li> Mon dd <a href=url title= Name of fake conference></a> - location </li>
+        </ul>
+    </div>
+    ...
+    """
 
-    year_mapping = dict([tuple(x.strong.text.split(',')) for x in eventList.find_all("div", {"class": "card-header"})])
+    year_mapping = dict([tuple(x.strong.text.split(',')) for x in eventList.find_all("div", {"class": "card-header"})])  # 'Easiest' way to get the year for the format of this website is to grab it from the header division, and then compare the month in the list entry to the headers to get the corresponding year. Header format: Month, YYYY
 
     for k in year_mapping.keys():
-        year_mapping[k] = int(year_mapping[k])
+        year_mapping[k] = int(year_mapping[k]) # Converting the years to integers to go into Date object.
 
     all_conferences = [Conference(d, year_mapping) for d in conference_entries]
 
-    go_later = date.today() + at_least_in_future > min(c.date for c in all_conferences)  # Checks if it found conferences later than the earliest permitted date
+    go_later = date.today() + at_least_in_future > min(c.date for c in all_conferences)  # Checks if it only found conferences later than the earliest permitted date
 
     return go_later, ConferenceList([c for c in all_conferences if date.today() + at_least_in_future <= c.date <= date.today() + at_most_in_future])
 
@@ -240,7 +268,7 @@ def get_conferences_from_webpage(website: BeautifulSoup, at_least_in_future: tim
 
 def get_all_conferences(website: str = None, at_least_in_future: timedelta = timedelta(days=30), at_most_in_future: timedelta = timedelta(days=180)):
     """
-
+    Gets all the conferences from the specified website in the specified time frame.
     :param website: (opt: None) Website to get data from. Defaults to https://conferenceindex.org/conferences/quantum-physics if no site supplied.
     :param at_least_in_future: (opt: default 30 days) Minimum time until the start of the conference
     :param at_most_in_future: (opt: default 180 days) Maximum time until the start of the conference
@@ -271,7 +299,7 @@ def get_all_conferences(website: str = None, at_least_in_future: timedelta = tim
 
 def do_html_request(website: str) -> (bool, BeautifulSoup | None):
     """
-    Handles the HTTP request.
+    Handles the HTTP request, and indicates if it was completed successfully
     :param website: Website to retrieve
     :return: (Successful, Website as BeautifulSoup or None)
     """
